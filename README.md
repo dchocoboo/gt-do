@@ -112,5 +112,3 @@ Actions are split into three files
 	vulnerability detected at 0.2.30
 
 	stable currently at 0.2.40 fixed in the package.json	
-
-	
