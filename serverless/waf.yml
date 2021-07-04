@@ -1,0 +1,70 @@
+# for the firewall to be associated with the API Gateway
+# reason for this rules applied based on few considerations
+# - exposed service is HTTP service
+# - nodejs used as the service language of choice
+# - Dynamo is used as datastore instead of relational dbs 
+# to mitigate as many malicious attempts as possible
+# but at the same time prevent false positives 
+# (but this is highly dependent or the sensitivity nature of service)
+# e.g if its a form survey service vs healthcare service that contains significantly more valuable data
+Resources:
+  TodosWAF:
+    Type: 'AWS::WAFv2::WebACL'
+    Properties:
+      Name: "${self:custom.associateWaf.name}"
+      DefaultAction: 
+        Allow: {}
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: TodosWebACLMetric
+      Scope: REGIONAL
+      Rules:
+        - Name: AWSManagedRulesAmazonIpReputationList
+          Priority: 0
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesAmazonIpReputationList
+          OverrideAction:
+            None: {}
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesAmazonIpReputationList
+            SampledRequestsEnabled: true
+        - Name: AWSManagedRulesAnonymousIpList
+          Priority: 1
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesAnonymousIpList
+          OverrideAction:
+            None: {}
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesAnonymousIpList
+            SampledRequestsEnabled: true
+        - Name: AWSManagedRulesCommonRuleSet
+          Priority: 2
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+          OverrideAction:
+            None: {}
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesCommonRuleSet
+            SampledRequestsEnabled: true
+        - Name: AWSManagedRulesKnownBadInputsRuleSet
+          Priority: 3
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesKnownBadInputsRuleSet
+          OverrideAction:
+            None: {}
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesKnownBadInputsRuleSet
+            SampledRequestsEnabled: true

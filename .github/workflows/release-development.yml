@@ -1,0 +1,45 @@
+name: Serverless Develop Deploy
+
+on:
+  push:
+    branches:
+      - develop
+      
+jobs:
+  do-test-and-deploy-to-develop:
+    name: deploy-to-develop
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # serverless running on the 2.4.0
+        # for compatibility
+        node-version: [12.x]
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - uses: actions/cache@v2
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install NPM Dependencies
+      run: npm ci
+
+    - name: Run Tests
+      run: npx jest
+
+    - name: Serverless deploy
+      run: npx serverless package -p release
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: release-dev
+        path: release

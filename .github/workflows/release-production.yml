@@ -1,0 +1,42 @@
+name: Serverless Production Deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy-to-production:
+    name: deploy-to-production
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # serverless running on the 2.4.0
+        # for compatibility
+        node-version: [12.x]
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    
+    - uses: actions/cache@v2
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install NPM Dependencies
+      run: npm ci
+
+    - name: Serverless deploy
+      run: npx serverless package -p release --stage production
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: release-prod
+        path: release

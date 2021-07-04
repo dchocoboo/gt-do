@@ -1,0 +1,43 @@
+# kms cmk to be owned 
+Resources:
+  TodosKMSKey:
+    Type: 'AWS::KMS::Key'
+    Properties:
+      Enabled: true
+      KeyPolicy :
+        Version: "2012-10-17"
+        Id: "${self:service}-${opt:stage, self:provider.stage}"
+        Statement:
+          - Sid: "Lambda Administration"
+            Effect: "Allow"
+            Principal:
+              # to be replaced with another automator role with higher permissions
+              # should never put root on this
+              AWS: "arn:aws:iam::#{AWS::AccountId}:root"
+            Action: "kms:*"
+            Resource: "*"
+          - Sid: "Lambda Encryption and Execution"
+            Effect: "Allow"
+            Principal:
+              AWS: "*"
+            Action:
+              - kms:CreateGrant
+              - kms:DescribeKey
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+            Resource: "*"
+            Condition:
+              StringEquals:
+                "kms:CallerAccount": "#{AWS::AccountId}"
+                "kms:ViaService": "dynamodb.${opt:region, self:provider.region}.amazonaws.com"
+          - Sid: "Dynamodb Principal Describe Key"
+            Effect: "Allow"
+            Principal:
+              Service: "dynamodb.amazonaws.com"
+            Action:
+              - kms:Describe*
+              - kms:Get*
+              - kms:List*
+            Resource: "*"

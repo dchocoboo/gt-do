@@ -1,0 +1,46 @@
+{
+  "name": "aws-node-rest-api-with-dynamodb-and-offline",
+  "version": "1.0.0",
+  "description": "Serverless REST API with DynamoDB and offline support",
+  "repository": "",
+  "author": "Christoph Gysin <christoph.gysin@gmail.com>",
+  "license": "MIT",
+  "engines": {
+    "node": "^12",
+    "npm": "^6"
+  },
+  "dependencies": {
+    "javascript-obfuscator": "^2.15.5",
+    "serverless": "2.4.0",
+    "serverless-cloudformation-sub-variables": "^0.2.1",
+    "sls-config-parser": "^1.0.3",
+    "sprintf-js": "^1.1.2",
+    "uuid": "^2.0.3",
+    "yaml-boost": "^2.0.0"
+  },
+  "devDependencies": {
+    "@shelf/jest-dynamodb": "^1.8.1",
+    "aws-sdk": "^2.939.0",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^7.29.0",
+    "eslint-plugin-jest": "^24.3.6",
+    "jest": "^27.0.6",
+    "serverless-associate-waf": "^1.2.1",
+    "serverless-dynamodb-local": "0.2.40",
+    "serverless-iam-roles-per-function": "^3.2.0",
+    "serverless-offline": "^6.8.0",
+    "serverless-plugin-tracing": "^2.0.0"
+  },
+  "jest": {
+    "testTimeout": 10000,
+    "verbose": true,
+    "preset": "@shelf/jest-dynamodb",
+    "rootDir": "./src"
+  },
+  "scripts": {
+    "start": "npm install && npx sls dynamodb install",
+    "lint": "npx eslint --ignore-path .gitignore .",
+    "test": "npx jest",
+    "offline": "npx sls offline start"
+  }
+}

@@ -1,0 +1,86 @@
+# eslint to run the basic linting for the javascript
+name: Code Checks
+
+# Run on all push
+on: push
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # code linting using eslint
+  lint-code:
+    name: lint-code
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [12.x]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build on Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - run: npm ci
+      
+      - name: Run ESLint
+        run: npx eslint --ignore-path .gitignore .
+  
+  # code quality checks via sonarqube
+  sonarqube-quality:
+    name: sonarqube-quality
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        # Disabling shallow clone is recommended for improving relevancy of reporting
+        fetch-depth: 0
+
+    - name: SonarQube Scan
+      uses: sonarsource/sonarqube-scan-action@master
+      with:
+        projectBaseDir: src
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      # DO NOT USE THIS ON PRODUCTION, CURRENTLY NO SONARQUBE TOKEN SO IT WILL ALWAYS FAIL
+      # TO SIMULATE PASS ONLY
+      continue-on-error: true
+
+  # package vulnerability checker
+  package-audit:
+    name: package-audit
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [12.x]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build on Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+            
+      - run: npm ci
+      
+      - uses: oke-py/npm-audit-action@v1.7.3
+        with:
+          # can set low (stricter)
+          audit_level: moderate
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          issue_labels: vulnerability,test
+          dedupe_issues: true

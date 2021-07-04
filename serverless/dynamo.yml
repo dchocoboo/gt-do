@@ -1,0 +1,19 @@
+# dynamodb service to store the todo list
+Resources:
+  TodosDynamoDbTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: Retain
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      TableName: ${self:provider.environment.DYNAMODB_TABLE}
+      # use own CMK for encryption at rest
+      SSESpecification:
+        KMSMasterKeyId: "#{TodosKMSKey.Arn}"
+        SSEEnabled: true
+        SSEType: KMS
